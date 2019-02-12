@@ -24,7 +24,7 @@ import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.Widget;
 
 /**
- * A Generator for contact informations, output is in MeCard format.
+ * A Generator for contact information, output is in MeCard format.
  * 
  * @author Yohann Coppel
  * @author Sean Owen
@@ -125,7 +125,7 @@ public final class ContactInfoGenerator implements GeneratorSource {
   }
 
   private static void maybeAppendMECARD(StringBuilder output, String prefix, String value) {
-    if (!value.isEmpty()) {
+    if (value != null && !value.isEmpty()) {
       value = value.replaceAll("([\\\\:;])", "\\\\$1");
       value = value.replaceAll("\\n", "");
       output.append(prefix).append(':').append(value).append(';');

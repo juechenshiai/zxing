@@ -19,7 +19,6 @@ package com.google.zxing.common.reedsolomon;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Random;
@@ -494,7 +493,7 @@ public final class ReedSolomonTestCase extends Assert {
   
   private static String arrayToString(int[] data) {
     StringBuilder sb = new StringBuilder("{");
-    for (int i=0; i<data.length; i++) {
+    for (int i = 0; i < data.length; i++) {
       sb.append(String.format(i > 0 ? ",%X" : "%X", data[i]));
     }
     return sb.append('}').toString();

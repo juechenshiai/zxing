@@ -40,11 +40,21 @@ public final class BitMatrix implements Cloneable {
   private final int rowSize;
   private final int[] bits;
 
-  // A helper to construct a square matrix.
+  /**
+   * Creates an empty square {@code BitMatrix}.
+   *
+   * @param dimension height and width
+   */
   public BitMatrix(int dimension) {
     this(dimension, dimension);
   }
 
+  /**
+   * Creates an empty {@code BitMatrix}.
+   *
+   * @param width bit matrix width
+   * @param height bit matrix height
+   */
   public BitMatrix(int width, int height) {
     if (width < 1 || height < 1) {
       throw new IllegalArgumentException("Both dimensions must be greater than 0");
@@ -62,6 +72,27 @@ public final class BitMatrix implements Cloneable {
     this.bits = bits;
   }
 
+  /**
+   * Interprets a 2D array of booleans as a {@code BitMatrix}, where "true" means an "on" bit.
+   *
+   * @param image bits of the image, as a row-major 2D array. Elements are arrays representing rows
+   * @return {@code BitMatrix} representation of image
+   */
+  public static BitMatrix parse(boolean[][] image) {
+    int height = image.length;
+    int width = image[0].length;
+    BitMatrix bits = new BitMatrix(width, height);
+    for (int i = 0; i < height; i++) {
+      boolean[] imageI = image[i];
+      for (int j = 0; j < width; j++) {
+        if (imageI[j]) {
+          bits.set(j, i);
+        }
+      }
+    }
+    return bits;
+  }
+
   public static BitMatrix parse(String stringRepresentation, String setString, String unsetString) {
     if (stringRepresentation == null) {
       throw new IllegalArgumentException();
@@ -77,23 +108,20 @@ public final class BitMatrix implements Cloneable {
       if (stringRepresentation.charAt(pos) == '\n' ||
           stringRepresentation.charAt(pos) == '\r') {
         if (bitsPos > rowStartPos) {
-          if(rowLength == -1) {
+          if (rowLength == -1) {
             rowLength = bitsPos - rowStartPos;
-          }
-          else if (bitsPos - rowStartPos != rowLength) {
+          } else if (bitsPos - rowStartPos != rowLength) {
             throw new IllegalArgumentException("row lengths do not match");
           }
           rowStartPos = bitsPos;
           nRows++;
         }
         pos++;
-      }
-      else if (stringRepresentation.substring(pos, pos + setString.length()).equals(setString)) {
+      }  else if (stringRepresentation.substring(pos, pos + setString.length()).equals(setString)) {
         pos += setString.length();
         bits[bitsPos] = true;
         bitsPos++;
-      }
-      else if (stringRepresentation.substring(pos, pos + unsetString.length()).equals(unsetString)) {
+      } else if (stringRepresentation.substring(pos, pos + unsetString.length()).equals(unsetString)) {
         pos += unsetString.length();
         bits[bitsPos] = false;
         bitsPos++;
@@ -105,7 +133,7 @@ public final class BitMatrix implements Cloneable {
 
     // no EOL at end?
     if (bitsPos > rowStartPos) {
-      if(rowLength == -1) {
+      if (rowLength == -1) {
         rowLength = bitsPos - rowStartPos;
       } else if (bitsPos - rowStartPos != rowLength) {
         throw new IllegalArgumentException("row lengths do not match");
@@ -172,7 +200,7 @@ public final class BitMatrix implements Cloneable {
         || rowSize != mask.getRowSize()) {
       throw new IllegalArgumentException("input matrix dimensions do not match");
     }
-    BitArray rowArray = new BitArray(width / 32 + 1);
+    BitArray rowArray = new BitArray(width);
     for (int y = 0; y < height; y++) {
       int offset = y * rowSize;
       int[] row = mask.getRow(y, rowArray).getBitArray();
@@ -257,7 +285,7 @@ public final class BitMatrix implements Cloneable {
     int height = getHeight();
     BitArray topRow = new BitArray(width);
     BitArray bottomRow = new BitArray(width);
-    for (int i = 0; i < (height+1) / 2; i++) {
+    for (int i = 0; i < (height + 1) / 2; i++) {
       topRow = getRow(i, topRow);
       bottomRow = getRow(height - 1 - i, bottomRow);
       topRow.reverse();
@@ -310,14 +338,11 @@ public final class BitMatrix implements Cloneable {
       }
     }
 
-    int width = right - left;
-    int height = bottom - top;
-
-    if (width < 0 || height < 0) {
+    if (right < left || bottom < top) {
       return null;
     }
 
-    return new int[] {left, top, width, height};
+    return new int[] {left, top, right - left + 1, bottom - top + 1};
   }
 
   /**
@@ -338,7 +363,7 @@ public final class BitMatrix implements Cloneable {
 
     int theBits = bits[bitsOffset];
     int bit = 0;
-    while ((theBits << (31-bit)) == 0) {
+    while ((theBits << (31 - bit)) == 0) {
       bit++;
     }
     x += bit;
@@ -408,16 +433,36 @@ public final class BitMatrix implements Cloneable {
     return hash;
   }
 
+  /**
+   * @return string representation using "X" for set and " " for unset bits
+   */
   @Override
   public String toString() {
     return toString("X ", "  ");
   }
 
+  /**
+   * @param setString representation of a set bit
+   * @param unsetString representation of an unset bit
+   * @return string representation of entire matrix utilizing given strings
+   */
   public String toString(String setString, String unsetString) {
-    return toString(setString, unsetString, System.lineSeparator());
+    return buildToString(setString, unsetString, "\n");
   }
-  
+
+  /**
+   * @param setString representation of a set bit
+   * @param unsetString representation of an unset bit
+   * @param lineSeparator newline character in string representation
+   * @return string representation of entire matrix utilizing given strings and line separator
+   * @deprecated call {@link #toString(String,String)} only, which uses \n line separator always
+   */
+  @Deprecated
   public String toString(String setString, String unsetString, String lineSeparator) {
+    return buildToString(setString, unsetString, lineSeparator);
+  }
+
+  private String buildToString(String setString, String unsetString, String lineSeparator) {
     StringBuilder result = new StringBuilder(height * (width + 1));
     for (int y = 0; y < height; y++) {
       for (int x = 0; x < width; x++) {
