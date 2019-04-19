@@ -1,5 +1,5 @@
 /*
- * Copyright 2008 ZXing authors
+ * Copyright 2019 ZXing authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,23 +14,19 @@
  * limitations under the License.
  */
 
-package com.google.zxing.qrcode;
+package com.google.zxing.web;
 
-import com.google.zxing.BarcodeFormat;
-import com.google.zxing.MultiFormatReader;
-import com.google.zxing.common.AbstractBlackBoxTestCase;
+import javax.servlet.annotation.WebFilter;
+import javax.servlet.annotation.WebInitParam;
 
 /**
- * @author Sean Owen
+ * Protect the /chart endpoint from too many requests.
  */
-public final class QRCodeBlackBox2TestCase extends AbstractBlackBoxTestCase {
-
-  public QRCodeBlackBox2TestCase() {
-    super("src/test/resources/blackbox/qrcode-2", new MultiFormatReader(), BarcodeFormat.QR_CODE);
-    addTest(31, 31, 0.0f);
-    addTest(30, 30, 90.0f);
-    addTest(30, 30, 180.0f);
-    addTest(30, 30, 270.0f);
-  }
-
+@WebFilter(urlPatterns = {"/w/chart"}, initParams = {
+  @WebInitParam(name = "maxAccessPerTime", value = "250"),
+  @WebInitParam(name = "accessTimeSec", value = "500"),
+  @WebInitParam(name = "maxEntries", value = "10000")
+})
+public final class ChartDoSFilter extends DoSFilter {
+  // no additional implementation
 }
